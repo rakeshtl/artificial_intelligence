@@ -5,7 +5,7 @@ This is an implementation of the village game as a gym environment. It can be us
 
 Installation
 
-Go to directory Village-Gm/gum-village/gym_vallage/envs
+Go to directory Village-Gm/gym-village/gym_vallage/envs
 
 pip install -e .
 
