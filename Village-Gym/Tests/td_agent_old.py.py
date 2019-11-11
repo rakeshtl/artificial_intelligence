@@ -243,7 +243,7 @@ class TDAgent(object):
         """
         if state not in st_values:
             logging.debug("ask_value - new state {}".format(state))
-            gstatus = check_game_status(state[0])
+            gstatus = check_game_status(state)
             val = DEFAULT_VALUE
             # win
             if gstatus > 0:
@@ -268,8 +268,7 @@ class TDAgent(object):
         nval = self.ask_value(nstate)
         diff = nval - val
         val2 = val + self.alpha * diff
-        if (diff > 0):
-            print('diff: {}'.format(diff))
+
         logging.debug("  value from {:0.2f} to {:0.2f}".format(val, val2))
         set_state_value(state, val2)
 

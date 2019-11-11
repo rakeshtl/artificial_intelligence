@@ -22,14 +22,14 @@ import gym_village
 
 WEEKLY_COST = -25
 NO_REWARD = 0
-WIN_REWARD = 1
-LOSE_REWARD = -1
+WIN_REWARD = 10
+LOSE_REWARD = -10
 DEFAULT_VALUE = 0
-EPISODE_CNT = 17000
+EPISODE_CNT = 34000
 BENCH_EPISODE_CNT = 3000
 MODEL_FILE = 'best_td_agent2.dat'
-EPSILON = 0.08
-ALPHA = 0.4
+EPSILON = 0.04
+ALPHA = 0.2
 CWD = os.path.dirname(os.path.abspath(__file__))
 LOG_FMT = logging.Formatter('%(levelname)s '
                             '[%(filename)s:%(lineno)d] %(message)s',
@@ -103,7 +103,6 @@ def after_action_state(state, info, action):
     
     nstate[0] += 1
     ninfo[0] += WEEKLY_COST
-
     # Action 1: Plant Corn
     if action == 1:
         # It is only possible in the first 3 weeks
@@ -126,7 +125,6 @@ def after_action_state(state, info, action):
             nstate[2] -= 1
             priceCorn = _sellCorn(nstate[0])
             ninfo[0] += priceCorn
-
     # Money Value
     if ninfo[0] >= 100:
         nstate[3] = 3
@@ -134,7 +132,6 @@ def after_action_state(state, info, action):
         nstate[3] = 2
     elif ninfo[0] <= 0:
         nstate[3] = 1
-
     # Labor Days Value
     if ninfo[1] >= 100:
         nstate[4] = 3
@@ -146,7 +143,6 @@ def after_action_state(state, info, action):
     nstate = tuple(nstate)
     ninfo = tuple(ninfo)
     return nstate, ninfo
-
 ############################################################
 # Defines the price of Corn
 ############################################################
@@ -257,12 +253,13 @@ class TDAgent(object):
         if tuple(state) not in st_values:
             logging.debug("ask_value - new state {}".format(state))
             val = NO_REWARD
+            
             if info[0] == 0:
                 val = LOSE_REWARD
             elif state[0] == 13:
-                val = info[0]
+                val = WIN_REWARD
             # win
-            set_state_value(state, val)
+            set_state_value(tuple(state), val)
         return st_values[tuple(state)]
 
     def backup(self, state, info, nstate, ninfo, reward):
@@ -282,7 +279,8 @@ class TDAgent(object):
         nval = self.ask_value(nstate, ninfo)
         diff = nval - val
         val2 = val + self.alpha * diff
-
+        #if (nval > val):
+        #    print('val: {}, nval:{}'.format(val, nval))
         logging.debug("  value from {:0.2f} to {:0.2f}".format(val, val2))
         set_state_value(state, val2)
 
@@ -292,8 +290,6 @@ class TDAgent(object):
 def cli(ctx, verbose):
     global tqdm
 
-    #rakesh
-    #verbose = 3
     set_log_level_by(verbose)
     if verbose > 0:
         tqdm = lambda x: x  # NOQA
@@ -348,7 +344,7 @@ def _learn(max_episode, epsilon, alpha, save_file):
             if done:
                 env.show_result(False)
                 # set terminal state value
-                set_state_value(state, info[0])#reward)
+                set_state_value(state, reward)
 
             state = nstate
             info = ninfo
@@ -406,19 +402,22 @@ def _play(load_file, show_number):
     td_agent = TDAgent(0, 0)  # prevent exploring
     agent = td_agent
     positive = False
-    while not positive:
+    for i_episode in range(20):
         state, info = env.reset()
         done = False
         while not done:
             ava_actions = env.available_actions()
             action = agent.act(state, info, ava_actions)
-            print(action)
+            #print(action)
             state, reward, done, info = env.step(action)
-            env.render(mode='human')
+            #env.render(mode='human')
             if done:
+                money, ld = env._get_obs();
+                if (money > 0):
+                    env.show_result(True)
                 if state[0] == 13:
                     positive = True
-                    env.show_result(True)
+                    #env.show_result(True)
                 break
 
 if __name__ == '__main__':

@@ -5,11 +5,11 @@ from gym import spaces
 ############################################################
 # Costants of the game
 ############################################################
-NUM_ACTIONS = 9
+NUM_ACTIONS = 4
 WEEKLY_COST = -25
 NO_REWARD = 0
-WIN_REWARD = 1
-LOSE_REWARD = -1
+WIN_REWARD = 10
+LOSE_REWARD = -10
 
 LOG_FMT = logging.Formatter('%(levelname)s '
                             '[%(filename)s:%(lineno)d] %(message)s',
@@ -58,13 +58,13 @@ class Village(gym.Env):
     def __init__(self, alpha = 0.02):
         super(Village, self).__init__()
         self.action_space = spaces.Discrete(NUM_ACTIONS)
-        self.observation_space = spaces.Discrete(2) #addiitonal info passed in each iteration - money and labor days
-        self.alpha = alpha #may need to be deleted
+        self.observation_space = spaces.Discrete(2)
+        self.alpha = alpha
         self.state = []
         self.seed()
         self.reset()
     
-    def reset(self): #called after each game is completed
+    def reset(self):
         self.done = False
         self.money = 250
         self.laborDays = 100
@@ -77,8 +77,8 @@ class Village(gym.Env):
             state[0]: week
             state[1]: planted corn
             state[2]: harvested corn
-            state[3]: money value - 1, 2, 3 - 1 maps to 0, 2 maps to 0-100, 3 maps to 100>
-            state[4]: labor days value - 1, 2, 3 - 1 maps to 0, 2 maps to 0-100, 3 maps to 100>
+            state[3]: money value
+            state[4]: labor days value
         """
         return [0, 0, 0, 3, 3]
     
@@ -122,7 +122,6 @@ class Village(gym.Env):
             if self.state[0] <= 3 and self.laborDays >= 25:
                 self.laborDays -= 25
                 self.state[1] += 1
-        # Action 2: Harvest Corn
         elif action == 2:
             # It is only possible in [6,8] week interval
             # And if there are available laborDays
@@ -131,15 +130,13 @@ class Village(gym.Env):
                 self.laborDays -= 5
                 self.state[1] -= 1
                 self.state[2] += 1
-        # Action 3: Sell Corn
         elif action == 3:
             # It is only possible in [9,13] week interval
             # And if there is harvested corn
             if self.state[0] >= 9 and self.state[0] <= 13 and self.state[2] > 0:
                 self.state[2] -= 1
-                priceOfCorn = self.priceCorn(self.state[0])
-                self.money += priceOfCorn
-
+                priceCorn = self._sellCorn(self.state[0])
+                self.money += priceCorn
         # Money Value
         if self.money >= 100:
             self.state[3] = 3
@@ -147,7 +144,6 @@ class Village(gym.Env):
             self.state[3] = 2
         elif self.money <= 0:
             self.state[3] = 1
-
         # Labor Days Value
         if self.laborDays >= 100:
             self.state[4] = 3
@@ -163,15 +159,13 @@ class Village(gym.Env):
         if self.money == 0:
             reward = LOSE_REWARD
         elif self.state == 13:
-            reward = self.money
+            reward = WIN_REWARD
         
-        return self.state, reward, self.done, self._get_obs()
+        return tuple(self.state), reward, self.done, self._get_obs()
         
-    def priceCorn(self, week):
+    def _sellCorn(self, week):
         values = []
         prob = []
-        if week < 9:
-            return 0
         if week == 9:
             values = [50,100]
             prob = [0.5,0.5]
@@ -192,7 +186,7 @@ class Village(gym.Env):
             values = [90,100]
             prob = [0.05,0.95]
             return random.choices(values, prob)[0]
-        return 100 #
+        return 100
     
     def render(self, mode='human', close=False):
         if close:
