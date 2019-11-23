@@ -16,7 +16,7 @@
 pip install --user gym</p>
 <p>If you already have it then upgrade to latest version<br>
 pip install --upgrade pip</p>
-<p><strong>Install Village game</strong><br>
+<p><strong>Next Install Village game</strong><br>
 Go to directory where <a href="http://setup.py">setup.py</a> is located.<br>
 cd Village-Gym/gym-village<br>
 pip install -e .</p>
