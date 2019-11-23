@@ -1,6 +1,6 @@
 import logging, random
 import gym
-import ConfigParser
+import configparser
 from gym import spaces
 
 ############################################################
@@ -69,17 +69,17 @@ class Village(gym.Env):
     
     def reset(self):
         self.done = False
-        self.money = 250
-        self.laborDays = 100
+        self.money = int(self.initialValues['money'])
+        self.laborDays = int(self.initialValues['labordays'])
         self.state = self.startState()
         return self.state, self._get_obs()
     
     def setInitialValues(self):
-        config = ConfigParser.ConfigParser()
-        config.read("village.ini")
-        initialValues = self.ConfigSectionMap(config, "InitialValues")
+        config = configparser.ConfigParser()
+        config.read("d:\\village.ini")
+        self.initialValues = self.configSectionMap(config, "InitialValues")
         
-    def configSectionMap(config, section):
+    def configSectionMap(self, config, section):
         dict1 = {}
         options = config.options(section)
         for option in options:
@@ -114,9 +114,9 @@ class Village(gym.Env):
                 True: no money left or total weeks == 13
         """
         status = False
-        if state[3] == 1:
+        if state[3] == int(self.initialValues['endgamevalue']):
             status = True
-        elif state[0] == 13:
+        elif state[0] == int(self.initialValues['totalweeks']):
             status = True
         return status
     
@@ -140,7 +140,8 @@ class Village(gym.Env):
         if action == 1:
             # It is only possible in the first 3 weeks
             # And if there are available laborDays
-            if self.state[0] <= 3 and self.laborDays >= 25:
+            if self.state[0] >= int(self.initialValues['corn.startplantingdate']) and \
+                self.state[0] <= int(self.initialValues['corn.endplantingdate']) and self.laborDays >= 25:
                 self.laborDays -= 25
                 self.state[1] += 1
         elif action == 2:
@@ -177,9 +178,9 @@ class Village(gym.Env):
         if self.isEnd(self.state):
             self.done = True
         
-        if self.money == 0:
+        if self.money == int(self.initialValues['endgamevalue']):
             reward = LOSE_REWARD
-        elif self.state == 13:
+        elif self.state == int(self.initialValues['totalweeks']):
             reward = WIN_REWARD
         
         return tuple(self.state), reward, self.done, self._get_obs()
