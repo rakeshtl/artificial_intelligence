@@ -18,7 +18,7 @@ pip install --user gym</p>
 pip install --upgrade pip</p>
 <p><strong>Install Village game</strong><br>
 Go to directory where <a href="http://setup.py">setup.py</a> is located.<br>
-cd Village-Gm/gym-village<br>
+cd Village-Gym/gym-village<br>
 pip install -e .</p>
 <h2 id="unit-testing">Unit Testing</h2>
 <p>Go to directory Village-Gym/Tests</p>
