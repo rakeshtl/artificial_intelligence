@@ -25,3 +25,12 @@ python td_agent2.py learn
 Play
 
 python td_agent2.py play
+
+
+To install gym
+
+pip install --user gym
+
+or to upgrade gym
+
+pip install --upgrade pip
