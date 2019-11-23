@@ -1,5 +1,6 @@
 import logging, random
 import gym
+import ConfigParser
 from gym import spaces
 
 ############################################################
@@ -54,9 +55,11 @@ def set_log_level_by(verbosity):
     
 class Village(gym.Env):
     metadata = {'render.modes': ['human']}
+    initialValues = {}
 
     def __init__(self, alpha = 0.02):
         super(Village, self).__init__()
+        self.setInitialValues()
         self.action_space = spaces.Discrete(NUM_ACTIONS)
         self.observation_space = spaces.Discrete(2)
         self.alpha = alpha
@@ -71,6 +74,24 @@ class Village(gym.Env):
         self.state = self.startState()
         return self.state, self._get_obs()
     
+    def setInitialValues(self):
+        config = ConfigParser.ConfigParser()
+        config.read("village.ini")
+        initialValues = self.ConfigSectionMap(config, "InitialValues")
+        
+    def configSectionMap(config, section):
+        dict1 = {}
+        options = config.options(section)
+        for option in options:
+            try:
+                dict1[option] = config.get(section, option)
+                if dict1[option] == -1:
+                    DebugPrint("skip: %s" % option)
+            except:
+                print("exception on %s!" % option)
+                dict1[option] = None
+        return dict1
+        
     def startState(self):
         """Return game status.
         Returns:
