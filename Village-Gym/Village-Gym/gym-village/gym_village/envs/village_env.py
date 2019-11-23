@@ -209,14 +209,15 @@ class Village(gym.Env):
     def _show_episode(self, showfn, episode):
         showfn("==== Episode {} ====".format(episode))
     
-    def show_result(self, human):
-        self._show_result(print if human else logging.info)
+    def show_result(self, human, episode):
+        self._show_result(print if human else logging.info, episode)
     
-    def _show_result(self, showfn):
+    def _show_result(self, showfn, episode):
         status = self.isEnd(self.state)
-        msg = "Week: {}, Total Money:  {}!".format(self.state[0], self.money)
-        showfn("==== Finished: {} ====".format(msg))
-        showfn('')
+        msg = "Week: {}, Total Money: {}, epsiode: {}".format(self.state[0], self.money, episode)
+        #showfn("==== Finished: {} ====".format(msg))
+        showfn("{}".format(msg))
+        #showfn('')
     
     def available_actions(self):
         """Step environment by action.

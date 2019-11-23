@@ -25,10 +25,10 @@ NO_REWARD = 0
 WIN_REWARD = 10
 LOSE_REWARD = -10
 DEFAULT_VALUE = 0
-EPISODE_CNT = 34000
+EPISODE_CNT = 17000
 BENCH_EPISODE_CNT = 3000
 MODEL_FILE = 'best_td_agent2.dat'
-EPSILON = 0.04
+EPSILON = 0.02
 ALPHA = 0.2
 CWD = os.path.dirname(os.path.abspath(__file__))
 LOG_FMT = logging.Formatter('%(levelname)s '
@@ -194,7 +194,9 @@ class TDAgent(object):
         """
         logging.debug("egreedy_policy")
         e = random.random()
-        if e < self.epsilon * self.episode_rate:
+        logging.debug("e {}, rate: {}, compare: {}".format(e,self.episode_rate, self.epsilon * ( 1 - self.episode_rate)))
+        if e < self.epsilon * ( 1 - self.episode_rate):
+            #print('explore')
             logging.debug("Explore with eps {}".format(self.epsilon))
             action = self.random_action(ava_actions)
         else:
@@ -342,7 +344,7 @@ def _learn(max_episode, epsilon, alpha, save_file):
             agent.backup(state, info, nstate, ninfo, reward)
 
             if done:
-                env.show_result(False)
+                env.show_result(False, episode)
                 # set terminal state value
                 set_state_value(state, reward)
 
@@ -401,24 +403,29 @@ def _play(load_file, show_number):
     env = gym.make('village-v0')
     td_agent = TDAgent(0, 0)  # prevent exploring
     agent = td_agent
-    positive = False
-    for i_episode in range(20):
-        state, info = env.reset()
-        done = False
-        while not done:
-            ava_actions = env.available_actions()
-            action = agent.act(state, info, ava_actions)
-            #print(action)
-            state, reward, done, info = env.step(action)
-            #env.render(mode='human')
-            if done:
-                money, ld = env._get_obs();
-                if (money > 0):
-                    env.show_result(True)
-                if state[0] == 13:
-                    positive = True
-                    #env.show_result(True)
-                break
-
+    for total_episodes in range(1000,1001):
+        positive = False
+        sum = 0
+        for i_episode in range(total_episodes):
+            state, info = env.reset()
+            done = False
+            while not done:
+                ava_actions = env.available_actions()
+                action = agent.act(state, info, ava_actions)
+                #print(action)
+                state, reward, done, info = env.step(action)
+                #env.render(mode='human')
+                if done:
+                    money, ld = env._get_obs();
+                    if (money > 0):
+                        #print(info[0])
+                        env.show_result(True, i_episode)
+                        sum += money
+                    if state[0] == 13:
+                        positive = True
+                        #env.show_result(True)
+                    break
+        average = sum/total_episodes
+        print('episodes: {}, average: {}'.format(total_episodes, average))
 if __name__ == '__main__':
     cli()
