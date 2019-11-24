@@ -1,6 +1,7 @@
 import logging, random
 import gym
 import configparser
+import os
 from gym import spaces
 
 ############################################################
@@ -69,15 +70,16 @@ class Village(gym.Env):
     
     def reset(self):
         self.done = False
-        self.money = int(self.initialValues['money'])
-        self.laborDays = int(self.initialValues['labordays'])
+        self.money = 250
+        self.laborDays = 100
         self.state = self.startState()
         return self.state, self._get_obs()
     
     def setInitialValues(self):
         config = configparser.ConfigParser()
-        config.read("d:\\village.ini")
+        config.read(os.path.join(os.path.abspath(os.path.dirname(__file__)), './', 'village.ini'))
         self.initialValues = self.configSectionMap(config, "InitialValues")
+        print(self.initialValues)
         
     def configSectionMap(self, config, section):
         dict1 = {}
@@ -114,9 +116,9 @@ class Village(gym.Env):
                 True: no money left or total weeks == 13
         """
         status = False
-        if state[3] == int(self.initialValues['endgamevalue']):
+        if state[3] <= 0:
             status = True
-        elif state[0] == int(self.initialValues['totalweeks']):
+        elif state[0] == 13:
             status = True
         return status
     
@@ -140,8 +142,7 @@ class Village(gym.Env):
         if action == 1:
             # It is only possible in the first 3 weeks
             # And if there are available laborDays
-            if self.state[0] >= int(self.initialValues['corn.startplantingdate']) and \
-                self.state[0] <= int(self.initialValues['corn.endplantingdate']) and self.laborDays >= 25:
+            if self.state[0] >= 0 and self.state[0] <= 3 and self.laborDays >= 25:
                 self.laborDays -= 25
                 self.state[1] += 1
         elif action == 2:
@@ -178,9 +179,9 @@ class Village(gym.Env):
         if self.isEnd(self.state):
             self.done = True
         
-        if self.money == int(self.initialValues['endgamevalue']):
+        if self.money <= 0:
             reward = LOSE_REWARD
-        elif self.state == int(self.initialValues['totalweeks']):
+        elif self.state == 13:
             reward = WIN_REWARD
         
         return tuple(self.state), reward, self.done, self._get_obs()

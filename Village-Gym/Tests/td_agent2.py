@@ -25,11 +25,11 @@ NO_REWARD = 0
 WIN_REWARD = 10
 LOSE_REWARD = -10
 DEFAULT_VALUE = 0
-EPISODE_CNT = 17000
+EPISODE_CNT = 500000
 BENCH_EPISODE_CNT = 3000
 MODEL_FILE = 'best_td_agent2.dat'
-EPSILON = 0.02
-ALPHA = 0.2
+EPSILON = 0.08
+ALPHA = 0.01
 CWD = os.path.dirname(os.path.abspath(__file__))
 LOG_FMT = logging.Formatter('%(levelname)s '
                             '[%(filename)s:%(lineno)d] %(message)s',
