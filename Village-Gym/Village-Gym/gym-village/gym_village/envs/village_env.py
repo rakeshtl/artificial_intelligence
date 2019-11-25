@@ -10,8 +10,8 @@ from gym import spaces
 NUM_ACTIONS = 4
 WEEKLY_COST = -25
 NO_REWARD = 0
-WIN_REWARD = 10
-LOSE_REWARD = -10
+WIN_REWARD = 1
+LOSE_REWARD = -1
 
 LOG_FMT = logging.Formatter('%(levelname)s '
                             '[%(filename)s:%(lineno)d] %(message)s',

@@ -22,13 +22,13 @@ import gym_village
 
 WEEKLY_COST = -25
 NO_REWARD = 0
-WIN_REWARD = 10
-LOSE_REWARD = -10
+WIN_REWARD = 1
+LOSE_REWARD = -1
 DEFAULT_VALUE = 0
-EPISODE_CNT = 500000
+EPISODE_CNT = 17000
 BENCH_EPISODE_CNT = 3000
 MODEL_FILE = 'best_td_agent2.dat'
-EPSILON = 0.08
+EPSILON = 0.02
 ALPHA = 0.01
 CWD = os.path.dirname(os.path.abspath(__file__))
 LOG_FMT = logging.Formatter('%(levelname)s '
@@ -195,7 +195,8 @@ class TDAgent(object):
         logging.debug("egreedy_policy")
         e = random.random()
         logging.debug("e {}, rate: {}, compare: {}".format(e,self.episode_rate, self.epsilon * ( 1 - self.episode_rate)))
-        if e < self.epsilon * ( 1 - self.episode_rate):
+        #print(self.epsilon / ( self.episode_rate))
+        if e < self.epsilon / ( self.episode_rate ):
             #print('explore')
             logging.debug("Explore with eps {}".format(self.epsilon))
             action = self.random_action(ava_actions)
