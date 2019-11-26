@@ -25,7 +25,7 @@ NO_REWARD = 0
 WIN_REWARD = 1
 LOSE_REWARD = -1
 DEFAULT_VALUE = 0
-EPISODE_CNT = 17000
+EPISODE_CNT = 7000
 BENCH_EPISODE_CNT = 3000
 MODEL_FILE = 'best_td_agent2.dat'
 EPSILON = 0.02
@@ -194,9 +194,9 @@ class TDAgent(object):
         """
         logging.debug("egreedy_policy")
         e = random.random()
-        logging.debug("e {}, rate: {}, compare: {}".format(e,self.episode_rate, self.epsilon * ( 1 - self.episode_rate)))
+        #logging.debug("e {}, rate: {}, compare: {}".format(e,self.episode_rate, self.epsilon * ( 1 - self.episode_rate)))
         #print(self.epsilon / ( self.episode_rate))
-        if e < self.epsilon / ( self.episode_rate ):
+        if e < self.epsilon / ( 1.2 * self.episode_rate ):
             #print('explore')
             logging.debug("Explore with eps {}".format(self.epsilon))
             action = self.random_action(ava_actions)
@@ -260,7 +260,8 @@ class TDAgent(object):
             if info[0] == 0:
                 val = LOSE_REWARD
             elif state[0] == 13:
-                val = WIN_REWARD
+                #val = WIN_REWARD
+                val = info[0]
             # win
             set_state_value(tuple(state), val)
         return st_values[tuple(state)]
@@ -281,7 +282,7 @@ class TDAgent(object):
         val = self.ask_value(state, info)
         nval = self.ask_value(nstate, ninfo)
         diff = nval - val
-        val2 = val + self.alpha * diff
+        val2 = (1-self.alpha) * val + self.alpha * (reward + 0.95 * nval)
         #if (nval > val):
         #    print('val: {}, nval:{}'.format(val, nval))
         logging.debug("  value from {:0.2f} to {:0.2f}".format(val, val2))

@@ -182,7 +182,7 @@ class Village(gym.Env):
         if self.money <= 0:
             reward = LOSE_REWARD
         elif self.state == 13:
-            reward = WIN_REWARD
+            reward = self.money
         
         return tuple(self.state), reward, self.done, self._get_obs()
         
