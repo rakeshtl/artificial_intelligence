@@ -9,6 +9,7 @@ from collections import defaultdict
 from itertools import product
 from multiprocessing import Pool
 from tempfile import NamedTemporaryFile
+from copy import deepcopy
 
 import pandas as pd
 import click
@@ -25,27 +26,27 @@ NO_REWARD = 0
 WIN_REWARD = 1
 LOSE_REWARD = -1
 DEFAULT_VALUE = 0
-EPISODE_CNT = 9900
+EPISODE_CNT = 10000
 BENCH_EPISODE_CNT = 3000
-MODEL_FILE = 'best_td_agent2.dat'
-EPSILON = 0.02
+MODEL_FILE = 'best_td_agent4.dat'
+EPSILON = 0.06
 ALPHA = 0.01
 CWD = os.path.dirname(os.path.abspath(__file__))
 LOG_FMT = logging.Formatter('%(levelname)s '
                             '[%(filename)s:%(lineno)d] %(message)s',
                             '%Y-%m-%d %H:%M:%S')
 
-st_values = {}
-st_visits = defaultdict(lambda: 0)
+ft_values = defaultdict(float)
+ft_visits = defaultdict(lambda: 0)
 
-def reset_state_values():
-    global st_values, st_visits
-    st_values = {}
-    st_visits = defaultdict(lambda: 0)
+def reset_feature_values():
+    global ft_values, ft_visits
+    ft_values = defaultdict(float)
+    ft_visits = defaultdict(lambda: 0)
 
-def set_state_value(state, value):
-    st_visits[tuple(state)] += 1
-    st_values[tuple(state)] = value
+def set_feature_value(feature, value):
+    ft_visits[tuple(feature)] += 1
+    ft_values[tuple(feature)] = value
 
 def best_val_indices(values, fn):
     best = fn(values)
@@ -176,6 +177,7 @@ class TDAgent(object):
         self.alpha = alpha
         self.epsilon = epsilon
         self.episode_rate = 1.0
+        self.weights = defaultdict(float)
 
     def act(self, state, info, ava_actions):
         return self.egreedy_policy(state, info, ava_actions)
@@ -196,7 +198,7 @@ class TDAgent(object):
         e = random.random()
         #logging.debug("e {}, rate: {}, compare: {}".format(e,self.episode_rate, self.epsilon * ( 1 - self.episode_rate)))
         #print(self.epsilon / ( self.episode_rate))
-        if e < self.epsilon / ( 1.2 * self.episode_rate ):
+        if e < self.epsilon / ( 0.1 *  self.episode_rate ):
             #print('explore')
             logging.debug("Explore with eps {}".format(self.epsilon))
             action = self.random_action(ava_actions)
@@ -225,9 +227,9 @@ class TDAgent(object):
         ava_values = []
         for action in ava_actions:
             nstate, ninfo = after_action_state(state, info, action)
-            nval = self.ask_value(nstate, ninfo)
+            nval = self.getQ(nstate, ninfo, action)
             ava_values.append(nval)
-            vcnt = st_visits[nstate]
+            vcnt = ft_visits[(nstate,action)]
             logging.debug("  nstate {} val {:0.2f} visits {}".
                           format(nstate, nval, vcnt))
         
@@ -241,32 +243,38 @@ class TDAgent(object):
         action = ava_actions[aidx]
 
         return action
-
-    def ask_value(self, state, info):
-        """Returns value of given state.
-
-        If state is not exists, set it as default value.
-
+    
+    def identityFeatureExtractor(self, state, info, action):
+        featureKey = (tuple(state), action)
+        featureValue = 1
+        return [(featureKey, featureValue)]
+    
+    def villageFeatureExtractor(self, state, info, action):
+        indicators = []
+        indicators.append(((action, info[0]), 1))
+        if (state[1] > 0):
+            indicators.append(((action, state[1]), 1))
+        if (state[2] > 0):
+            indicators.append(((action, state[2]), 1))
+        indicators.append(((action, state[2], info[0]), 1))
+        indicators.append((('plantedCorn', action, state[1], 75), 1))
+        indicators.append((('harvestedCorn', action, state[2], 75), 1))
+        return indicators
+    
+    def getQ(self, state, info, action):
+        """Return the Q function associated with the weights and features.
         Args:
-            state (tuple): State.
-
+            state, action (tuple): State, Action.
         Returns:
             float: Value of a state.
         """
-        if tuple(state) not in st_values:
-            logging.debug("ask_value - new state {}".format(state))
-            val = NO_REWARD
-            
-            if info[0] == 0:
-                val = LOSE_REWARD
-            elif state[0] == 13:
-                #val = WIN_REWARD
-                val = info[0]
-            # win
-            set_state_value(tuple(state), val)
-        return st_values[tuple(state)]
+        score = 0.0
+        
+        for f, v in self.villageFeatureExtractor(state, info, action):
+            score += self.weights[f] * v
+        return score
 
-    def backup(self, state, info, nstate, ninfo, reward):
+    def backup(self, state, info, nstate, ninfo, action, reward):
         """Backup value by difference and step size.
 
         Execute an action then backup Q by best value of next state.
@@ -279,15 +287,15 @@ class TDAgent(object):
         logging.debug("backup state {} nstate {} reward {}".
                       format(state, nstate, reward))
 
-        val = self.ask_value(state, info)
-        nval = self.ask_value(nstate, ninfo)
-        diff = nval - val
-        gamma = 0.95
-        val2 = (1-self.alpha) * val + self.alpha * (reward + gamma * nval)
-        #if (nval > val):
-        #    print('val: {}, nval:{}'.format(val, nval))
-        logging.debug("  value from {:0.2f} to {:0.2f}".format(val, val2))
-        set_state_value(state, val2)
+        prediction = self.getQ(state, info, action)
+        QoptSprime = self.getQ(nstate, ninfo, action)
+        target = reward + 0.95*QoptSprime
+        scalar = self.alpha*(prediction - target)
+        #print(scalar)
+        for f, v in list(self.villageFeatureExtractor(state, info, action)):
+            self.weights[f] = self.weights[f] - v * scalar
+            set_feature_value(f, self.weights[f])
+        logging.debug("  value from {:0.2f} to {:0.2f}".format(prediction, target))
 
 @click.group()
 @click.option('-v', '--verbose', count=True, help="Increase verbosity.")
@@ -311,7 +319,6 @@ def cli(ctx, verbose):
 def learn(max_episode, epsilon, alpha, save_file):
     _learn(max_episode, epsilon, alpha, save_file)
 
-
 def _learn(max_episode, epsilon, alpha, save_file):
     """Learn by episodes.
 
@@ -324,7 +331,7 @@ def _learn(max_episode, epsilon, alpha, save_file):
         alpha (float): Step size.
         save_file: File name to save result.
     """
-    reset_state_values()
+    reset_feature_values()
 
     env = gym.make('village-v0')
     agent = TDAgent(epsilon, alpha)
@@ -345,7 +352,7 @@ def _learn(max_episode, epsilon, alpha, save_file):
 
             # update (no rendering)
             nstate, reward, done, ninfo = env.step(action)
-            agent.backup(state, info, nstate, ninfo, reward)
+            agent.backup(state, info, nstate, ninfo, action, reward)
 
             if done:
                 money, ld = env._get_obs();
@@ -355,30 +362,29 @@ def _learn(max_episode, epsilon, alpha, save_file):
                     sum = 0
                 env.show_result(False, episode)
                 # set terminal state value
-                set_state_value(state, reward)
+                #set_feature_value(state, reward)
 
             state = nstate
             info = ninfo
-    
+
+    # save states
     with open('tempdata.dat', 'wt') as f:
         for k,v in values.items():
             print('episode: {}, value: {}'.format(k,v))
             f.write('episode: {}, value: {}\n'.format(k,v))
-    # save states
+    ft_values = deepcopy(agent.weights)
     save_model(save_file, max_episode, epsilon, alpha)
-   
-
-
+    
 def save_model(save_file, max_episode, epsilon, alpha):
     with open(save_file, 'wt') as f:
         # write model info
         info = dict(type="td", max_episode=max_episode, epsilon=epsilon,
                     alpha=alpha)
-        # write state values
+        # write feature values
         f.write('{}\n'.format(json.dumps(info)))
-        for state, value in st_values.items():
-            vcnt = st_visits[state]
-            f.write('{}\t{:0.3f}\t{}\n'.format(state, value, vcnt))
+        for feature, value in ft_values.items():
+            vcnt = ft_visits[feature]
+            f.write('{}\t{:0.3f}\t{}\n'.format(feature, value, vcnt))
 
 def load_model(filename):
     with open(filename, 'rb') as f:
@@ -389,8 +395,8 @@ def load_model(filename):
             state = eval(elms[0])
             val = eval(elms[1])
             vcnt = eval(elms[2])
-            st_values[state] = val
-            st_visits[state] = vcnt
+            ft_values[state] = val
+            ft_visits[state] = vcnt
     return info
 
 @cli.command(help="Play alone.")
@@ -417,11 +423,14 @@ def _play(load_file, show_number):
     env = gym.make('village-v0')
     td_agent = TDAgent(0, 0)  # prevent exploring
     agent = td_agent
+    agent.weights = deepcopy(ft_values)
+    reset_feature_values()
+    # print(agent.weights)
     for total_episodes in range(1000,1001):
         positive = False
+        sum_total = 0
         values = {}
         sum = 0
-        sum_total = 0
         for i_episode in range(total_episodes):
             state, info = env.reset()
             done = False
@@ -434,13 +443,11 @@ def _play(load_file, show_number):
                 if done:
                     money, ld = env._get_obs();
                     sum += money
+                    sum_total += money
                     if i_episode%50 == 0:
                         values[i_episode] = sum/50
                         sum = 0
-                    if (money > 0):
-                        #print(info[0])
-                        env.show_result(True, i_episode)
-                        sum_total += money
+                    env.show_result(True, i_episode)
                     if state[0] == 13:
                         positive = True
                         #env.show_result(True)

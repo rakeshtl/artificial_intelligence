@@ -1,0 +1,1 @@
+from gym_village2.envs.village2_env import Village2
