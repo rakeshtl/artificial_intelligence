@@ -48,8 +48,4 @@ jupyter notebook</p>
 <p>Run the model one step at a time<br>
 To do a test run, in step 14, change nb_steps=2000<br>
 dqn_only_embedding.fit(env, nb_steps=2000, visualize=False, verbose=1, nb_max_episode_steps=99, log_interval=500)</p>
-<p>Learn: python td_agent4.py learn<br>
-Play: python td_agent4.py play<br>
-Install<br>
-Tensorflow 1.13</p>
 
