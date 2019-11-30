@@ -42,7 +42,8 @@ pip install keras-rl</p>
 pip install tensorflow=1.13.1</p>
 <p>Jupyter Notebook<br>
 pip install jupyterlab</p>
-<p>cd Village-Gym/Village2-Gym/gym-village2<br>
+<p><strong>Next Install Village game Jupyter gym env</strong><br>
+cd Village-Gym/Village2-Gym/gym-village2<br>
 pip install -e .</p>
 <p>cd …/…/Tests-Jupyter<br>
 jupyter notebook</p>
