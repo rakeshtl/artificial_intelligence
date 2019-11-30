@@ -24,8 +24,32 @@ pip install -e .</p>
 <p>Go to directory Village-Gym/Tests</p>
 <p>cd Village-Gym/Tests<br>
 python <a href="http://VillageTest.py">VillageTest.py</a></p>
-<h2 id="learning">Learning</h2>
-<p>python td_agent2.py learn</p>
-<h2 id="play">Play</h2>
-<p>python td_agent2.py play</p>
+<h2 id="models">Models</h2>
+<p><strong>Model 1: Q-Learning (Q Tables)</strong><br>
+Learn: python td_agent2.py learn<br>
+Play: python td_agent2.py play</p>
+<p><strong>Model 2: Function Approximation (state, action)</strong><br>
+Learn: python td_agent3.py learn<br>
+Play: python td_agent3.py play</p>
+<p><strong>Model 3: Function Approximation (features)</strong><br>
+Learn: python td_agent4.py learn<br>
+Play: python td_agent4.py play</p>
+<p><strong>Model 3: Deep Q Learning (DQN)</strong><br>
+Preequisites:<br>
+Keras-rl -<br>
+pip install keras-rl</p>
+<p>Tensorflow 1.13 - pip install tensorflow==1.13.1</p>
+<p>Jupyter Notebook<br>
+pip install jupyterlab</p>
+<p>cd Village-Gym/Village2-Gym/gym-village2<br>
+pip install -e .</p>
+<p>cd …/…/Tests-Jupyter<br>
+jupyter notebook</p>
+<p>Run the model one step at a time<br>
+To do a test run, in step 14, change nb_steps=2000<br>
+dqn_only_embedding.fit(env, nb_steps=2000, visualize=False, verbose=1, nb_max_episode_steps=99, log_interval=500)</p>
+<p>Learn: python td_agent4.py learn<br>
+Play: python td_agent4.py play<br>
+Install<br>
+Tensorflow 1.13</p>
 
