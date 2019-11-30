@@ -16,7 +16,7 @@
 pip install --user gym</p>
 <p>If you already have it then upgrade to latest version<br>
 pip install --upgrade pip</p>
-<p><strong>Next Install Village game</strong><br>
+<p><strong>Next Install Village game gym env</strong><br>
 Go to directory where <a href="http://setup.py">setup.py</a> is located.<br>
 cd Village-Gym/gym-village<br>
 pip install -e .</p>
@@ -34,18 +34,20 @@ Play: python td_agent3.py play</p>
 <p><strong>Model 3: Function Approximation (features)</strong><br>
 Learn: python td_agent4.py learn<br>
 Play: python td_agent4.py play</p>
-<p><strong>Model 3: Deep Q Learning (DQN)</strong><br>
-Preequisites:<br>
+<p><strong>Model 4: Deep Q Learning (DQN)</strong><br>
+<em><strong>Preequisites:</strong></em><br>
 Keras-rl -<br>
 pip install keras-rl</p>
-<p>Tensorflow 1.13 - pip install tensorflow==1.13.1</p>
+<p>Tensorflow 1.13 -<br>
+pip install tensorflow=1.13.1</p>
 <p>Jupyter Notebook<br>
 pip install jupyterlab</p>
 <p>cd Village-Gym/Village2-Gym/gym-village2<br>
 pip install -e .</p>
 <p>cd …/…/Tests-Jupyter<br>
 jupyter notebook</p>
-<p>Run the model one step at a time<br>
-To do a test run, in step 14, change nb_steps=2000<br>
-dqn_only_embedding.fit(env, nb_steps=2000, visualize=False, verbose=1, nb_max_episode_steps=99, log_interval=500)</p>
+<p><strong>Run the model one step at a time</strong><br>
+To do a test run, reduce the time it takes. In step 14, change the parameter as follows:<br>
+nb_steps=2000</p>
+<p>dqn_only_embedding.fit(env, nb_steps=2000, visualize=False, verbose=1, nb_max_episode_steps=99, log_interval=500)</p>
 
