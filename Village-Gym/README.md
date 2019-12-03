@@ -51,4 +51,18 @@ jupyter notebook</p>
 To do a test run, reduce the time it takes. In step 14, change the parameter as follows:<br>
 nb_steps=2000</p>
 <p>dqn_only_embedding.fit(env, nb_steps=2000, visualize=False, verbose=1, nb_max_episode_steps=99, log_interval=500)</p>
+<p><strong>DQN Models</strong><br>
+python -m pip install -U matplotlib</p>
+<p>cd …/…/Village-DQN<br>
+jupyter notebook<br>
+open DQN_2_(state)_Learn_Play</p>
+<p><em>To Learn</em><br>
+In step 12<br>
+num_episodes = 10000<br>
+mode = ‘train’<br>
+run the notebook</p>
+<p><em>To Play</em><br>
+After training, to predict, change<br>
+mode = ‘test’<br>
+run the notebook</p>
 
