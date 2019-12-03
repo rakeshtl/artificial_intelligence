@@ -52,9 +52,11 @@ To do a test run, reduce the time it takes. In step 14, change the parameter as 
 nb_steps=2000</p>
 <p>dqn_only_embedding.fit(env, nb_steps=2000, visualize=False, verbose=1, nb_max_episode_steps=99, log_interval=500)</p>
 <p><strong>DQN Models</strong><br>
+python -m pip install -U pip<br>
 python -m pip install -U matplotlib</p>
 <p>cd …/…/Village-DQN<br>
-jupyter notebook<br>
+jupyter notebook</p>
+<p><em>DQN State Based Model</em><br>
 open DQN_2_(state)_Learn_Play</p>
 <p><em>To Learn</em><br>
 In step 12<br>
