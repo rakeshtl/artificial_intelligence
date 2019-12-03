@@ -357,8 +357,8 @@ def _learn(max_episode, epsilon, alpha, save_file):
             if done:
                 money, ld = env._get_obs();
                 sum += money
-                if episode%50 == 0:
-                    values[episode] = sum/50
+                if episode%1 == 0:
+                    values[episode] = sum/1
                     sum = 0
                 env.show_result(False, episode)
                 # set terminal state value
@@ -368,7 +368,7 @@ def _learn(max_episode, epsilon, alpha, save_file):
             info = ninfo
 
     # save states
-    with open('tempdata.dat', 'wt') as f:
+    with open('tempdata_4_learn.dat', 'wt') as f:
         for k,v in values.items():
             print('episode: {}, value: {}'.format(k,v))
             f.write('episode: {}, value: {}\n'.format(k,v))
@@ -444,8 +444,8 @@ def _play(load_file, show_number):
                     money, ld = env._get_obs();
                     sum += money
                     sum_total += money
-                    if i_episode%50 == 0:
-                        values[i_episode] = sum/50
+                    if i_episode%1 == 0:
+                        values[i_episode] = sum/1
                         sum = 0
                     env.show_result(True, i_episode)
                     if state[0] == 13:
@@ -453,9 +453,9 @@ def _play(load_file, show_number):
                         #env.show_result(True)
                     break
         average = sum_total/total_episodes
-        with open('tempdata.dat', 'wt') as f:
+        with open('tempdata_4_play.dat', 'wt') as f:
             for k,v in values.items():
-                print('episode: {}, value: {}'.format(k,v))
+                #print('episode: {}, value: {}'.format(k,v))
                 f.write('episode: {}, value: {}\n'.format(k,v))
         print('episodes: {}, average: {}'.format(total_episodes, average))
 if __name__ == '__main__':

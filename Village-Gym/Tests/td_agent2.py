@@ -25,10 +25,10 @@ NO_REWARD = 0
 WIN_REWARD = 1
 LOSE_REWARD = -1
 DEFAULT_VALUE = 0
-EPISODE_CNT = 9900
+EPISODE_CNT = 10000
 BENCH_EPISODE_CNT = 3000
 MODEL_FILE = 'best_td_agent2.dat'
-EPSILON = 0.02
+EPSILON = 0.03
 ALPHA = 0.01
 CWD = os.path.dirname(os.path.abspath(__file__))
 LOG_FMT = logging.Formatter('%(levelname)s '
@@ -279,15 +279,13 @@ class TDAgent(object):
         logging.debug("backup state {} nstate {} reward {}".
                       format(state, nstate, reward))
 
-        val = self.ask_value(state, info)
-        nval = self.ask_value(nstate, ninfo)
-        diff = nval - val
+        prediction = self.ask_value(state, info)
+        Vopt = self.ask_value(nstate, ninfo)
         gamma = 0.95
-        val2 = (1-self.alpha) * val + self.alpha * (reward + gamma * nval)
-        #if (nval > val):
-        #    print('val: {}, nval:{}'.format(val, nval))
-        logging.debug("  value from {:0.2f} to {:0.2f}".format(val, val2))
-        set_state_value(state, val2)
+        target = reward + gamma * Vopt
+        Qopt = (1-self.alpha) * prediction + self.alpha * target
+        logging.debug("  value from {:0.2f} to {:0.2f}".format(prediction, Qopt))
+        set_state_value(state, Qopt)
 
 @click.group()
 @click.option('-v', '--verbose', count=True, help="Increase verbosity.")
@@ -350,8 +348,8 @@ def _learn(max_episode, epsilon, alpha, save_file):
             if done:
                 money, ld = env._get_obs();
                 sum += money
-                if episode%50 == 0:
-                    values[episode] = sum/50
+                if episode%1 == 0:
+                    values[episode] = sum/1
                     sum = 0
                 env.show_result(False, episode)
                 # set terminal state value
@@ -360,7 +358,7 @@ def _learn(max_episode, epsilon, alpha, save_file):
             state = nstate
             info = ninfo
     
-    with open('tempdata.dat', 'wt') as f:
+    with open('tempdata_2_learn.dat', 'wt') as f:
         for k,v in values.items():
             print('episode: {}, value: {}'.format(k,v))
             f.write('episode: {}, value: {}\n'.format(k,v))
@@ -434,8 +432,8 @@ def _play(load_file, show_number):
                 if done:
                     money, ld = env._get_obs();
                     sum += money
-                    if i_episode%50 == 0:
-                        values[i_episode] = sum/50
+                    if i_episode%1 == 0:
+                        values[i_episode] = sum/1
                         sum = 0
                     if (money > 0):
                         #print(info[0])
@@ -446,9 +444,9 @@ def _play(load_file, show_number):
                         #env.show_result(True)
                     break
         average = sum_total/total_episodes
-        with open('tempdata.dat', 'wt') as f:
+        with open('tempdata_2_play.dat', 'wt') as f:
             for k,v in values.items():
-                print('episode: {}, value: {}'.format(k,v))
+                #print('episode: {}, value: {}'.format(k,v))
                 f.write('episode: {}, value: {}\n'.format(k,v))
         print('episodes: {}, average: {}'.format(total_episodes, average))
 if __name__ == '__main__':
